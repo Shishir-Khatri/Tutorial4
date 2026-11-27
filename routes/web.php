@@ -1,21 +1,42 @@
 <?php
 
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\Teams\TeamInvitationController;
-use App\Http\Middleware\EnsureTeamMembership;
+
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 
-Route::inertia('/', 'welcome')->name('home');
 
-Route::prefix('{current_team}')
-    ->middleware(['auth', 'verified', EnsureTeamMembership::class])
-    ->group(function () {
-        Route::get('dashboard', DashboardController::class)->name('dashboard');
-    });
-
-Route::middleware(['auth'])->group(function () {
-    Route::post('invitations/{invitation}/accept', [TeamInvitationController::class, 'accept'])->name('invitations.accept');
-    Route::delete('invitations/{invitation}', [TeamInvitationController::class, 'decline'])->name('invitations.decline');
+// Public routes
+Route::get('/', function () {
+    return redirect()->route('login');
 });
 
-require __DIR__.'/settings.php';
+
+Route::get('/register', [AuthController::class, 'showRegister'])
+    ->name('register');
+
+
+Route::post('/register', [AuthController::class, 'register'])
+    ->name('register.submit');
+
+
+Route::get('/login', [AuthController::class, 'showLogin'])
+    ->name('login');
+
+
+Route::post('/login', [AuthController::class, 'login'])
+    ->name('login.submit');
+
+
+// Routes accessible only to authenticated users
+Route::middleware('auth')->group(function () {
+
+
+    Route::get('/dashboard', [AuthController::class, 'dashboard'])
+        ->name('dashboard');
+
+
+    Route::post('/logout', [AuthController::class, 'logout'])
+        ->name('logout');
+
+
+});
